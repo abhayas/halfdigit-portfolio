@@ -480,6 +480,26 @@
       </p>
     </section>
   </div>
+
+  <script>
+  (function () {
+    fetch("https://halfdigit-api.onrender.com/log-visit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        page_path: window.location.pathname,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent
+      })
+    }).catch(() => {
+      // fail silently — never block page load
+    });
+  })();
+</script>
+
+
 </body>
 
 </html>

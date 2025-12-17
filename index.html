@@ -483,13 +483,16 @@
 
   <script>
   (function () {
+
+    const visitortype = localStorage.getItem("visitor_type")=="owner"? "owner" : "visitor"
+
     fetch("https://halfdigit-api.onrender.com/log-visit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        page_path: window.location.pathname,
+        page_path: visitortype + window.location.pathname,
         referrer: document.referrer,
         user_agent: navigator.userAgent
       })

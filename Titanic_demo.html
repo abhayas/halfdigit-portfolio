@@ -108,39 +108,38 @@
     }
 
     .form-control,
-.form-check-input {
-  background-color: #020617;
-  color: #e5e7eb;
-  border: 1px solid #334155;
-}
+    .form-check-input {
+      background-color: #020617;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+    }
 
-.form-control:focus {
-  background-color: #020617;
-  color: #e5e7eb;
-  border-color: #38bdf8;
-  box-shadow: none;
-}
+    .form-control:focus {
+      background-color: #020617;
+      color: #e5e7eb;
+      border-color: #38bdf8;
+      box-shadow: none;
+    }
 
-.form-label,
-.form-check-label,
-.form-text {
-  color: #cbd5f5;
-}
-
+    .form-label,
+    .form-check-label,
+    .form-text {
+      color: #cbd5f5;
+    }
   </style>
 </head>
 
 <body>
   <div style="max-width:720px;margin:auto  auto 1rem;">
-  <a href="/" style="
+    <a href="/" style="
     color:#38bdf8;
     text-decoration:none;
     font-size:0.9rem;
     font-weight:500;
   ">
-    ← Back to Home
-  </a>
-</div>
+      ← Back to Home
+    </a>
+  </div>
   <div class="container">
     <h1>Titanic Survival Prediction</h1>
 
@@ -195,6 +194,19 @@
       </button>
     </form>
 
+        <div id="loading-message" style="
+      display:none;
+      margin-top:1rem;
+      padding:0.75rem;
+      border-radius:8px;
+      background:rgba(234,179,8,0.15);
+      color:#facc15;
+      font-size:0.85rem;
+    ">
+          First prediction may take ~30–60 seconds while the model wakes up.
+          Please don’t refresh.
+        </div>
+
     <div id="result" class="mt-4"></div>
 
 
@@ -225,42 +237,60 @@
     const form = document.getElementById("form");
     const resultDiv = document.getElementById("result");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      resultDiv.textContent = "Running prediction...";
+    const loadingMsg = document.getElementById("loading-message");
 
-      const payload = {
-        pclass: form.pclass.value,
-        age: form.age.value,
-        sibsp: form.sibsp.value,
-        parch: form.parch.value,
-        adult_male: form.adult_male.checked ? 1 : 0,
-        alone: form.alone.checked ? 1 : 0,
-        male: form.male.checked ? 1 : 0
-      };
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      const response = await fetch(
-        "https://halfdigit-api.onrender.com/predict-titanic",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
+  // Show warm-up message
+  loadingMsg.style.display = "block";
+  resultDiv.innerHTML = "";
+  form.querySelector("button").disabled = true;
+  form.querySelector("button").innerText = "Running prediction...";
 
-      const data = await response.json();
+  const payload = {
+    pclass: form.pclass.value,
+    age: form.age.value,
+    sibsp: form.sibsp.value,
+    parch: form.parch.value,
+    adult_male: form.adult_male.checked ? 1 : 0,
+    alone: form.alone.checked ? 1 : 0,
+    male: form.male.checked ? 1 : 0
+  };
 
-      resultDiv.className =
-        "alert " + (data.survived ? "alert-success" : "alert-danger");
+  try {
+    const response = await fetch(
+      "https://halfdigit-api.onrender.com/predict-titanic",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
 
-      resultDiv.innerHTML = `
-        <strong>Prediction:</strong>
-        ${data.survived ? "Survived" : "Did Not Survive"}<br/>
-        <strong>Confidence:</strong> ${(data.probability * 100).toFixed(1)}%
-      `;
+    const data = await response.json();
 
+    // Hide warm-up message
+    loadingMsg.style.display = "none";
 
-    });
+    resultDiv.className =
+      "alert " + (data.survived ? "alert-success" : "alert-danger");
+
+    resultDiv.innerHTML = `
+      <strong>Prediction:</strong>
+      ${data.survived ? "Survived" : "Did Not Survive"}<br/>
+      <strong>Confidence:</strong> ${(data.probability * 100).toFixed(1)}%
+    `;
+  } catch (err) {
+    loadingMsg.style.display = "none";
+    resultDiv.className = "alert alert-warning";
+    resultDiv.innerText = "Something went wrong. Please try again.";
+  } finally {
+    form.querySelector("button").disabled = false;
+    form.querySelector("button").innerText = "Run Prediction";
+  }
+});
+
   </script>
 </body>
 
